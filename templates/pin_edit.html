@@ -1,0 +1,16 @@
+<script type="text/javascript" 
+    src="http://maps.googleapis.com/maps/api/js?key=AIzaSyDDehIH2E3FPjNQqR3PsmU-ScuJyaPq4Bc&sensor=true">
+</script>
+<script>
+
+{% include "include/address_to_lat_lng.js" %}
+
+function storeResult(result){
+    document.getElementById('lat').value = result['lat'];
+    document.getElementById('lng').value = result['lng'];
+}
+</script>
+
+<form method='POST' action="{{ url_for(form.action, pin_id=form.id) }}">
+{% include "include/pin_write_form.html" %}
+</form>

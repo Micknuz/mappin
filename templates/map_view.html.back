@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block head %}
+<title>{{ map.name }} Mappin!</title> 
+<script type="text/javascript"
+      src="http://maps.googleapis.com/maps/api/js?key=AIzaSyDDehIH2E3FPjNQqR3PsmU-ScuJyaPq4Bc&sensor=true">
+    </script>
+<script type="text/javascript" src="http://google-maps-utility-library-v3.googlecode.com/svn/tags/markerwithlabel/1.1.8/src/markerwithlabel.js">
+</script>
+<style>
+	.labels {
+		font-size:10pt;
+		padding:2px;
+		border:1px solid #333333;
+		background-color: white;
+		max-width: 200px;
+		white-space:nowrap;
+	}
+</style>
+<script type="text/javascript">
+	var map;
+	var locations = [
+		{% for mappin in map.pins %}
+    		Array({{mappin.pin.id}}, '{{mappin.pin.name}}', {{ mappin.pin.lat }}, {{mappin.pin.lng }}),
+    	{% endfor %}	
+	];
+	var marker = Array();
+	var info = Array();
+
+	function open_infowindow_in_list(idx) {
+		return false;
+		close_infowindows();
+		open_infowindow(idx);
+		scroll_to_map();
+	}
+
+	function open_infowindow(idx) {
+		info[idx].open(map, marker[idx]);
+	}
+
+	function close_infowindows() {
+		for(var i=0; i<locations.length; i++) {
+			info[locations[i][0]].close();
+		}
+	}
+
+	function scroll_to_map() {
+		window.scrollTo(0,120)
+	}
+
+	function init() {
+		var myLatlng = new google.maps.LatLng(37.5534933, 126.9256819);
+		var mapOptions = {
+          zoom: 10,
+          center: myLatlng,
+          mapTypeId: google.maps.MapTypeId.ROADMAP
+        }
+
+		map = new google.maps.Map(document.getElementById('map'), mapOptions);
+		
+		var points = Array();
+
+		for(var i=0; i<locations.length; i++) {
+			idx = locations[i][0];
+			points[idx] = new google.maps.LatLng(locations[i][2], locations[i][3]);
+
+			marker[idx] = new MarkerWithLabel({
+				position: points[idx],
+				draggable: false,
+				map: map,
+				labelContent: locations[i][1],
+				labelAnchor: new google.maps.Point(22, 0),
+				labelClass: "labels", // the CSS class for the label
+				labelStyle: {opacity: 0.9}
+			});
+			marker[idx].index = idx;
+			/*
+			info[idx] = new google.maps.InfoWindow({
+				content: locations[i][1],
+				maxWidth:200,
+			});
+
+			google.maps.event.addListener(marker[idx], "click", function() {
+				open_infowindow(this.index);
+			});
+*/
+		}
+		
+   		var bounds = new google.maps.LatLngBounds();
+
+   		for (var i in points) {
+			// LatLngBounds 객체에 해당 좌표들을 포함
+			bounds.extend(points[i]);
+		}
+
+		map.fitBounds(bounds);
+		
+	}
+</script> 
+{% endblock %}
+
+{% block body %}
+<h1>{{ map.name }}</h1>
+<p>{{ map.description }}
+<div id="map" style="width:600px;height:600px;"></div>
+<div id="list" style="width:600px;">
+<ul>
+	{% for mappin in map.pins %}
+    <li>
+    	<dt>
+    		<a href="javascript:open_infowindow_in_list({{ mappin.pin.id }})">
+    		{{ mappin.pin.name }}
+    		</a>
+    	</dt>
+    {% if mappin.pin.address %}
+    	<dd>
+    		{{ mappin.pin.address }}
+    	</dd>
+    {% endif %}
+    {% if mappin.pin.description %}
+    	<dd><pre style="word-wrap: break-word;">{{ mappin.pin.description }}
+    	</pre></dd>
+    {% endif %}
+	</li>
+    {% endfor %}
+</ul>
+</list>
+{% if logined %}
+<div id="pin">
+    <form method="post" action="{{ url_for('pin_add', map_id=map.id) }}">
+	    <label>name <input type="text" name="name" /></label>
+	    <label>description <textarea name="description"></textarea></label>
+	    <label>latitude <input type="text" name="latitude" /></label>
+	    <label>longitude <input type="text" name="longitude" /></label>
+	    <labal>address <input type="text" name="address" /></label>
+	    <input type="submit" value="추가" />
+	</form>
+</div>
+{% endif %}
+<script type="text/javascript"> init() </script>
+{% endblock %}

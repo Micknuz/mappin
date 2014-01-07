@@ -1,0 +1,9 @@
+{% extends "base_bootstrap.html" %}
+
+{% block body %}
+<ul>
+    {% for map in maps %}
+    <li><a href="{{url_for('map_view', id=map.id)}}">{{ map.name }}</a></li>
+    {% endfor %}
+</ul>
+{% endblock %}

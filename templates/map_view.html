@@ -1,0 +1,200 @@
+{% from "_formhelper.html" import render_field %}
+{% extends "base_bootstrap.html" %}
+
+{% block head %}
+<title>{{ map.name }} Mappin!</title> 
+<link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='full.css') }}" />
+<link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/magnific-popup.css') }}" />
+<script type="text/javascript"
+      src="http://maps.googleapis.com/maps/api/js?key=AIzaSyDDehIH2E3FPjNQqR3PsmU-ScuJyaPq4Bc&sensor=true">
+    </script>
+<script type="text/javascript" src="http://google-maps-utility-library-v3.googlecode.com/svn/tags/markerwithlabel/1.1.8/src/markerwithlabel.js">
+</script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/jquery.magnific-popup.js') }}">
+</script>
+<script type="text/javascript">
+	var map;
+	var locations = [
+		{% for mappin in map.pins %}
+    		Array({{mappin.pin.id}}, '{{mappin.pin.name}}', {{ mappin.pin.lat }}, {{mappin.pin.lng }}),
+    	{% endfor %}	
+	];
+	var marker = Array();
+	var info = Array();
+
+	function open_infowindow_in_list(idx) {
+        $('#pin_detail_'+idx).toggle();
+        /*
+		close_infowindows();
+		open_infowindow(idx);
+		scroll_to_map();
+        */
+	}
+
+	function open_infowindow(idx) {
+		info[idx].open(map, marker[idx]);
+	}
+
+	function close_infowindows() {
+		for(var i=0; i<locations.length; i++) {
+			info[locations[i][0]].close();
+		}
+	}
+
+	function scroll_to_map() {
+		window.scrollTo(0,120)
+	}
+
+	function init() {
+		var myLatlng = new google.maps.LatLng(37.5534933, 126.9256819);
+		var mapOptions = {
+          zoom: 10,
+          center: myLatlng,
+          mapTypeId: google.maps.MapTypeId.ROADMAP
+        }
+
+		map = new google.maps.Map(document.getElementById('map'), mapOptions);
+		
+		var points = Array();
+
+		for(var i=0; i<locations.length; i++) {
+			idx = locations[i][0];
+			points[idx] = new google.maps.LatLng(locations[i][2], locations[i][3]);
+
+			marker[idx] = new MarkerWithLabel({
+				position: points[idx],
+				draggable: false,
+				map: map,
+				labelContent: locations[i][1],
+				labelAnchor: new google.maps.Point(22, 0),
+				labelClass: "labels", // the CSS class for the label
+				labelStyle: {opacity: 0.9}
+			});
+			marker[idx].index = idx;
+			/*
+			info[idx] = new google.maps.InfoWindow({
+				content: locations[i][1],
+				maxWidth:200,
+			});
+
+			google.maps.event.addListener(marker[idx], "click", function() {
+				open_infowindow(this.index);
+			});
+*/
+		}
+		
+   		var bounds = new google.maps.LatLngBounds();
+
+   		for (var i in points) {
+			// LatLngBounds 객체에 해당 좌표들을 포함
+			bounds.extend(points[i]);
+		}
+
+		map.fitBounds(bounds);
+		
+	}
+    
+    {% include "include/address_to_lat_lng.js" %}
+
+
+	function storeResult(result){
+		document.getElementById('lat').value = result['lat'];
+		document.getElementById('lng').value = result['lng'];
+	}
+
+    function set_pin_id_to_url_form(pin_id) {
+        $('#url_pin_id').val(pin_id);
+    }
+
+$(document).ready(function() {
+    $('.popup-with-form').magnificPopup({
+        type: 'inline',
+        preloader: false,
+        focus: '#name',
+
+        // When elemened is focused, some mobile browsers in some cases zoom in
+        // It looks not nice, so we disable it:
+        callbacks: {
+            beforeOpen: function() {
+                if($(window).width() < 700) {
+                    this.st.focus = false;
+                } else {
+                    this.st.focus = '#name';
+                }
+            }
+        }
+    });
+});
+</script> 
+{% endblock %}
+
+{% block body %}
+  <div class="jumbotron">
+    <h1>{{ map.name }}</h1>
+    <p class="lead">{{ map.description }}
+    <div id="map" style="height:600px;"></div>
+  </div>
+  <hr>
+
+  <div class="row-fluid pin_list">
+
+<ul>
+	{% for mappin in map.pins %}
+    <li>
+    	<dt>
+    		<h4>{{ mappin.pin.name }}</h4>
+    		<a href="javascript:open_infowindow_in_list({{ mappin.pin.id }})">
+            ▼
+    		</a>
+            <div id="pin_detail_{{mappin.pin.id}}" class="pin_detail_layer">
+                <ul>
+                    <li><a href="#">지도에서 보기</a></li>
+                    <li><a class="popup-with-form" href="#url_add_form" onclick="set_pin_id_to_url_form({{mappin.pin.id}})">이 핀에 URL 추가</a></li>
+                    <li><a href="{{url_for('pin_edit', pin_id=mappin.pin.id) }}">핀 수정</a></li>
+                    <li><a href="{{url_for('mappin_unlink', map_id=map.id, pin_id=mappin.pin.id) }}">핀을 지도에서 삭제</a></li>
+                </ul>
+            </div>
+    	</dt>
+   {% if mappin.pin.description %}
+    	<dd><pre style="word-wrap: break-word;">{{ mappin.pin.description }}</pre></dd>
+    {% endif %}
+  
+    <ul>
+    {% for u in mappin.pin.urls %}
+        <li><a href="{{ u.url }}" target="_blank">
+            {{ u.description }}
+        </a></li>
+    {% endfor %}
+    </ul>
+
+	{% if mappin.pin.address %}
+    <dd>
+      <address>{{ mappin.pin.address }}</address>
+    </dd>
+    {% endif %}
+ 
+
+ </li>
+    {% endfor %}
+</ul>
+    </div>
+
+
+        <form method="post" action="{{ url_for('url_add') }}" id="url_add_form" class="white-popup-block mfp-hide">
+        <input type="hidden" name="url_pin_id" id="url_pin_id" />
+        {{ url_form.csrf_token }}
+        {{ render_field(url_form.url) }}
+        {{ render_field(url_form.description) }}
+        <input type="submit" />
+        </form>
+
+{% if logined %}
+<div id="pin">
+    <form method="post" action="{{ url_for(form.action, map_id=map.id) }}">
+        {% include "include/pin_write_form.html" %}
+	</form>
+</div>
+
+{% endif %}
+<script type="text/javascript"> init() </script>
+{% endblock %}

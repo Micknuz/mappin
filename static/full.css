@@ -1,0 +1,38 @@
+.pin_list ul{
+    list-style:none;
+    margin-left:0px;
+}
+
+.pin_list h4{
+    display:inline;
+}
+
+
+
+.pin_detail_layer { 
+    display:none;
+    position:absolute;
+    background-color:white;
+    border:1px solid black;
+    padding:0 3px 0 3px;
+}
+
+.pin_detail_layer ul{
+    list-style: none;
+    margin-left:0px;
+}
+
+.pin_detail_layer li{
+    border-bottom:1px solid #DDD;
+    font-size:12px;
+}
+
+.labels {
+	font-size:10pt;
+    padding:2px;
+    border:1px solid #333333;
+	background-color: white;
+	max-width: 200px;
+	white-space:nowrap;
+}
+

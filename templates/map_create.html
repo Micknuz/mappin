@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block body %}
+    <h1>지도 추가</h1>
+    <form method="post" action="{{ url_for('map_create') }}" >
+        <label>이름<input type="text" name="name" /></label>
+        <label>설명 <textarea name="description"></textarea>
+        <input type="submit" value="추가" />
+    </form>
+{% endblock %}

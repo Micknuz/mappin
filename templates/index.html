@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block body %}
+  <h1>Keep on Mappin'!</h1>
+  {% if user %}
+    <div>
+        {{ user.id }} 로그인
+    </div>
+  {% endif %}
+{% endblock %}

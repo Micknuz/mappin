@@ -1,0 +1,11 @@
+{% for pin in pins %}
+ <p> 
+    {{ pin.name }}
+    {% for m in pin.maps %}
+      {{ m.map.name }}
+    {% endfor %}
+    <br/>
+    <a href="{{ url_for('pin_edit', pin_id=pin.id) }}">수정</a>
+    <a href="{{ url_for('pin_delete', pin_id=pin.id) }}">삭제</a>
+ </p>
+{% endfor %}

@@ -1,0 +1,9 @@
+        {% from "_formhelper.html" import render_field %}
+        {{ form.csrf_token }}
+        {{ render_field(form.name) }}
+        {{ render_field(form.address) }}
+        <input type="button" value="주소변환" onclick="javascript:addressToLatlng(document.getElementById('address').value, storeResult)" />
+        {{ render_field(form.lat) }}
+        {{ render_field(form.lng) }}
+        {{ render_field(form.description) }}
+        <input type="submit" value="OK!" />
